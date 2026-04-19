@@ -120,9 +120,10 @@ document.getElementById('rom-search-input').addEventListener('keypress', (e) => 
 // --- 5. UPDATED GAME CARD CLICK LISTENER ---
 // Because we changed the HTML structure, the click listener needs a slight tweak
 document.querySelectorAll('.game-card').forEach(card => {
-    card.addEventListener('click', () => {
+    card.addEventListener('click', (event) => {
         const romFile = card.getAttribute('data-rom');
-        loadHomebrew(romFile);
+        // Pass the actual card element so we can manipulate its text
+        loadHomebrew(romFile, card); 
     });
 });
 
@@ -240,27 +241,46 @@ function frame() {
 // --- NEW CODE: SPRINT 2, INSTANT LOAD LOGIC ---
 
 // Function to fetch a ROM from the local 'roms' folder
-async function loadHomebrew(filename) {
+// Updating Homebrew Function
+async function loadHomebrew(filename, buttonElement) {
     console.log(`Fetching game: ${filename}...`);
-    initAudio(); // <--- ADD THIS HERE
+    
+    // 1. Change UI to show it is loading
+    const originalText = buttonElement.innerText;
+    buttonElement.innerText = "BOOTING...";
+    buttonElement.style.opacity = "0.5";
+    
+    initAudio(); 
     if (audioCtx && audioCtx.state === 'suspended') {
         audioCtx.resume();
     }
+    
     try {
-        // Fetch the file from the local server
         const response = await fetch(`./roms/${filename}`);
-        if (!response.ok) throw new Error("ROM not found. Check the filename!");
+        if (!response.ok) throw new Error("ROM not found.");
         
-        // Convert the response to an ArrayBuffer
         const arrayBuffer = await response.arrayBuffer();
-        
-        // JSNES expects a binary string, so we convert the buffer
         const uint8Array = new Uint8Array(arrayBuffer);
         let binaryString = '';
         for (let i = 0; i < uint8Array.byteLength; i++) {
             binaryString += String.fromCharCode(uint8Array[i]);
         }
 
+        nes.loadROM(binaryString);
+        console.log(`${filename} loaded successfully!`);
+        
+        if (gameLoop) cancelAnimationFrame(gameLoop);
+        gameLoop = window.requestAnimationFrame(frame);
+        
+    } catch (error) {
+        console.error("Error fetching ROM:", error);
+        alert(`Could not load ${filename}.`);
+    } finally {
+        // 2. Revert the UI back to normal once the game starts
+        buttonElement.innerText = originalText;
+        buttonElement.style.opacity = "1";
+    }
+}
         // Load it into the emulator and start the loop
         nes.loadROM(binaryString);
         console.log(`${filename} loaded successfully!`);
