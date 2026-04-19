@@ -3,19 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebNES Emulator</title>
+    <title>WebNES MVP</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="emulator-container">
-        <div class="controls" style="margin-bottom: 20px; text-align: center;">
-            <label for="rom-upload" style="cursor: pointer; background: #333; padding: 10px 20px; border-radius: 5px; border: 1px solid #555;">
-                Load .NES File
-            </label>
-            <input type="file" id="rom-upload" accept=".nes" style="display: none;" />
-        </div>
+    <div id="app-container">
+        
+        <aside id="library-sidebar">
+            <div class="logo-area">
+                <h1>WebNES</h1>
+                <p>Instant Retro Emulation</p>
+            </div>
 
-        <canvas id="nes-canvas" width="256" height="240"></canvas>
+            <div class="featured-games">
+                <h3>Featured Homebrew</h3>
+                <button class="game-btn" data-rom="Alter_Ego.nes">Play Alter Ego</button>
+                <button class="game-btn" data-rom="BladeBuster.nes">Play BladeBuster</button>
+                <button class="game-btn" data-rom="2048.nes">Play 2048</button>
+                <button class="game-btn" data-rom="Lawn_Mower.nes">Play Lawn Mower</button>
+                <button class="game-btn" data-rom="owlia.nes">Play The Legends of Owlia</button>
+                <button class="game-btn" data-rom="streemerz-v02.nes">Play STREEMERZ</button>
+                <button class="game-btn" data-rom="Super Bat Puncher Demo.nes">Play Super Bat Puncher</button>
+                <button class="game-btn" data-rom="City Connection (USA).nes">Play City Connection</button>
+            </div>
+
+            <div class="upload-section">
+                <h3>Bring Your Own ROM</h3>
+                <p class="privacy-note">Processed 100% locally. Zero server uploads.</p>
+                <label for="rom-upload" class="upload-btn">Upload .NES File</label>
+                <input type="file" id="rom-upload" accept=".nes" />
+            </div>
+
+            <div class="controls-info">
+                <h3>Controls</h3>
+                <p><b>D-Pad:</b> Arrow Keys</p>
+                <p><b>A / B:</b> Z / X</p>
+                <p><b>Start / Select:</b> Enter / Shift</p>
+            </div>
+        </aside>
+
+        <main id="emulator-main">
+            <div class="tv-bezel">
+                <canvas id="nes-canvas" width="256" height="240"></canvas>
+            </div>
+        </main>
     </div>
 
     <script src="https://unpkg.com/jsnes/dist/jsnes.min.js"></script>
