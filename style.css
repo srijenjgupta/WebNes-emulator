@@ -91,3 +91,60 @@ input[type=range] { cursor: pointer; width: 100px; }
     right: 0; 
     bottom: 0;
 }
+
+/* --- MOBILE RESPONSIVENESS & TOUCH CONTROLS --- */
+
+/* Hide touch controls by default on Desktop */
+.mobile-controls { display: none; }
+
+@media (max-width: 900px) {
+    /* Stack the layout vertically */
+    #app-container { flex-direction: column; height: auto; overflow-y: auto; }
+    
+    /* Make the sidebar take full width */
+    #library-sidebar { width: auto; border-right: none; border-bottom: 2px solid var(--border-color); padding: 15px; }
+    
+    /* Center and scale the TV for small screens */
+    #emulator-main { padding: 15px 0; flex-direction: column; justify-content: flex-start; }
+    .tv-wrapper { width: 95%; max-width: 512px; margin: 0 auto; }
+    .tv-bezel { padding: 15px; }
+    
+    /* CRITICAL: Scale the canvas to fit phone screens without warping */
+    #nes-canvas { width: 100%; height: auto; aspect-ratio: 256 / 240; }
+
+    /* Hide the volume and fullscreen buttons on mobile (they clutter UI and phones handle this natively) */
+    .volume-control, #btn-fullscreen { display: none; }
+
+    /* Show and style the Mobile Touch Controls */
+    .mobile-controls {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 95%;
+        max-width: 500px;
+        margin: 20px auto;
+        padding: 10px;
+        background: #11111a;
+        border-radius: 12px;
+        border: 1px solid var(--border-color);
+        user-select: none; /* Prevents text highlighting when tapping */
+    }
+
+    .d-pad, .action-pad { display: flex; flex-direction: column; align-items: center; gap: 5px; }
+    .d-row { display: flex; gap: 40px; }
+    .ab-pad { display: flex; gap: 15px; margin-top: 10px; }
+    .sys-pad { display: flex; gap: 10px; margin-bottom: 10px; }
+
+    /* Touch Button Aesthetics */
+    .touch-btn {
+        background: #222; color: #fff; border: 2px solid #444; 
+        font-family: 'Press Start 2P', cursive; font-size: 0.8rem;
+        cursor: pointer; display: flex; justify-content: center; align-items: center;
+        touch-action: manipulation; /* Prevents double-tap zooming on phones */
+    }
+    .touch-btn:active { background: var(--neon-blue); color: #000; border-color: #fff; }
+
+    .d-pad .touch-btn { width: 50px; height: 50px; border-radius: 8px; }
+    .round-btn { width: 60px; height: 60px; border-radius: 50%; font-size: 1rem; color: var(--neon-blue); }
+    .sys-btn { padding: 8px 12px; font-size: 0.6rem; border-radius: 20px; background: #111; }
+}
