@@ -1,29 +1,28 @@
-// 1. Grab the Canvas and setup the pixel buffer
+// --- 1. CORE SETUP ---
 const canvas = document.getElementById('nes-canvas');
 const ctx = canvas.getContext('2d');
 const imageData = ctx.getImageData(0, 0, 256, 240);
 const buf = new ArrayBuffer(imageData.data.length);
 const buf8 = new Uint8ClampedArray(buf);
 const buf32 = new Uint32Array(buf);
+let gameLoop;
 
-
-// --- AUDIO SYSTEM SETUP ---
+// --- 2. AUDIO SYSTEM ---
 const AudioContext = window.AudioContext || window.webkitAudioContext;
 let audioCtx;
 let scriptProcessor;
+let gainNode; 
 let audioSamplesL = [];
 let audioSamplesR = [];
 
-// Function to initialize the Audio engine
 function initAudio() {
     if (audioCtx) return; 
     
     audioCtx = new AudioContext();
     scriptProcessor = audioCtx.createScriptProcessor(4096, 0, 2);
     
-    // Create the Volume Node
     gainNode = audioCtx.createGain();
-    gainNode.gain.value = 0.5; // Default to 50% volume
+    gainNode.gain.value = document.getElementById('volume-slider').value;
 
     scriptProcessor.onaudioprocess = function(e) {
         const leftOut = e.outputBuffer.getChannelData(0);
@@ -34,64 +33,44 @@ function initAudio() {
         }
     };
     
-    // Connect processor -> gain node -> speakers
     scriptProcessor.connect(gainNode);
     gainNode.connect(audioCtx.destination);
-    console.log("Web Audio API Initialized with Gain Control");
+    console.log("Web Audio API Initialized");
 }
 
-// Volume Slider Event Listener
 document.getElementById('volume-slider').addEventListener('input', (e) => {
-    if (gainNode) {
-        gainNode.gain.value = e.target.value;
-    }
+    if (gainNode) gainNode.gain.value = e.target.value;
 });
 
-
-// --- 2. FULLSCREEN LOGIC ---
+// --- 3. UI CONTROLS (Fullscreen, Save/Load, Search) ---
 document.getElementById('btn-fullscreen').addEventListener('click', () => {
     const tvBezel = document.getElementById('tv-container');
     if (!document.fullscreenElement) {
-        tvBezel.requestFullscreen().catch(err => {
-            alert(`Error attempting to enable fullscreen: ${err.message}`);
-        });
+        tvBezel.requestFullscreen().catch(err => alert(`Error: ${err.message}`));
     } else {
         document.exitFullscreen();
     }
 });
 
-
-// --- 3. SAVE AND LOAD STATE LOGIC ---
 document.getElementById('btn-save').addEventListener('click', () => {
     if (!nes) return;
-    
-    // Grab the exact memory state of the emulator
     const stateData = nes.toJSON();
-    
-    // Create a downloadable JSON file
     const blob = new Blob([JSON.stringify(stateData)], { type: "application/json" });
     const url = URL.createObjectURL(blob);
-    
-    // Trick the browser into clicking a hidden download link
     const a = document.createElement('a');
     a.href = url;
     a.download = `webnes_save_${new Date().getTime()}.json`;
     a.click();
-    
     URL.revokeObjectURL(url);
-    console.log("State Saved!");
 });
 
 document.getElementById('state-upload').addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
     const reader = new FileReader();
     reader.onload = function(event) {
         try {
-            const stateData = JSON.parse(event.target.result);
-            nes.fromJSON(stateData); // Inject memory state back into JSNES
-            console.log("State Loaded Successfully!");
+            nes.fromJSON(JSON.parse(event.target.result));
         } catch (err) {
             alert("Invalid save state file.");
         }
@@ -99,36 +78,18 @@ document.getElementById('state-upload').addEventListener('change', (e) => {
     reader.readAsText(file);
 });
 
-
-// --- 4. GOOGLE SEARCH REDIRECT ---
 document.getElementById('search-btn').addEventListener('click', () => {
     const query = document.getElementById('rom-search-input').value;
     if (query.trim() !== "") {
-        // Construct the Google search URL and open in a new tab
-        const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query + ' nes rom free')}`;
-        window.open(searchUrl, '_blank');
+        window.open(`https://www.google.com/search?q=${encodeURIComponent(query + ' nes rom free')}`, '_blank');
     }
 });
 
-// Allow hitting "Enter" in the search box
 document.getElementById('rom-search-input').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') {
-        document.getElementById('search-btn').click();
-    }
+    if (e.key === 'Enter') document.getElementById('search-btn').click();
 });
 
-// --- 5. UPDATED GAME CARD CLICK LISTENER ---
-// Because we changed the HTML structure, the click listener needs a slight tweak
-document.querySelectorAll('.game-card').forEach(card => {
-    card.addEventListener('click', (event) => {
-        const romFile = card.getAttribute('data-rom');
-        // Pass the actual card element so we can manipulate its text
-        loadHomebrew(romFile, card); 
-    });
-});
-
-
-// --- UPDATED JSNES INITIALIZATION ---
+// --- 4. EMULATOR ENGINE (JSNES) ---
 const nes = new jsnes.NES({
     onFrame: function(framebuffer_24) {
         for (let i = 0; i < 256 * 240; i++) {
@@ -138,122 +99,47 @@ const nes = new jsnes.NES({
         ctx.putImageData(imageData, 0, 0);
     },
     onAudioSample: function(left, right) {
-        // As JSNES generates the "sheet music" into raw audio, push it to our queues
         audioSamplesL.push(left);
         audioSamplesR.push(right);
     }
 });
 
-// --- UPDATED KEYBOARD MAPPINGS (2 PLAYERS) ---
-// We map each key to an array: [PlayerNumber, JSNES_Button]
-const keyMap = {
-    // Player 1 (Right side of keyboard)
-    'ArrowUp':    [1, jsnes.Controller.BUTTON_UP],
-    'ArrowDown':  [1, jsnes.Controller.BUTTON_DOWN],
-    'ArrowLeft':  [1, jsnes.Controller.BUTTON_LEFT],
-    'ArrowRight': [1, jsnes.Controller.BUTTON_RIGHT],
-    'KeyZ':       [1, jsnes.Controller.BUTTON_B],
-    'KeyX':       [1, jsnes.Controller.BUTTON_A],
-    'Enter':      [1, jsnes.Controller.BUTTON_START],
-    'ShiftRight': [1, jsnes.Controller.BUTTON_SELECT],
-
-    // Player 2 (Left side of keyboard)
-    'KeyW':       [2, jsnes.Controller.BUTTON_UP],
-    'KeyS':       [2, jsnes.Controller.BUTTON_DOWN],
-    'KeyA':       [2, jsnes.Controller.BUTTON_LEFT],
-    'KeyD':       [2, jsnes.Controller.BUTTON_RIGHT],
-    'KeyC':       [2, jsnes.Controller.BUTTON_B],     // 'C' is P2's Shoot
-    'KeyV':       [2, jsnes.Controller.BUTTON_A],     // 'V' is P2's Jump
-    'Digit1':     [2, jsnes.Controller.BUTTON_START], // '1' is P2's Start
-    'Digit2':     [2, jsnes.Controller.BUTTON_SELECT] // '2' is P2's Select
-};
-
-document.addEventListener('keydown', (e) => {
-    // --- NEW LINE: THE FIX ---
-    // If the user is typing inside an input field, do not trigger the emulator
-    if (e.target.tagName.toLowerCase() === 'input') return; 
-
-    const mapping = keyMap[e.code];
-    if (mapping) {
-        nes.buttonDown(mapping[0], mapping[1]);
-        e.preventDefault(); 
-    }
-});
-
-document.addEventListener('keyup', (e) => {
-    // --- NEW LINE: THE FIX ---
-    if (e.target.tagName.toLowerCase() === 'input') return;
-
-    const mapping = keyMap[e.code];
-    if (mapping) {
-        nes.buttonUp(mapping[0], mapping[1]);
-        e.preventDefault();
-    }
-});
-
-console.log("Canvas rendering loop and controller mappings initialized.");
-// --- NEW CODE: SPRINT 1, STEP 3 ---
-
-let gameLoop;
-
-// Handle the local file upload
-document.getElementById('rom-upload').addEventListener('change', function(e) {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    initAudio();
-    if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume();
-    }
-    console.log("Reading file locally:", file.name);
-
-    const reader = new FileReader();
-    
-    reader.onload = function(event) {
-        const binaryString = event.target.result;
-        
-        try {
-            // Load the ROM data into the emulator
-            nes.loadROM(binaryString);
-            console.log("ROM loaded successfully!");
-            
-            // Start the game loop (cancel any existing loop first)
-            if (gameLoop) cancelAnimationFrame(gameLoop);
-            gameLoop = window.requestAnimationFrame(frame);
-            
-        } catch (error) {
-            console.error("Error loading ROM:", error);
-            alert("Failed to load ROM. Is it a valid .nes file?");
-        }
-    };
-    
-    // JSNES requires the file to be read as a Binary String
-    reader.readAsBinaryString(file); 
-});
-
-// The core loop that advances the emulator by one frame and requests the next
 function frame() {
     pollGamepad();
     nes.frame(); 
     gameLoop = window.requestAnimationFrame(frame);
 }
 
-// --- NEW CODE: SPRINT 2, INSTANT LOAD LOGIC ---
+// --- 5. GAME LOADING LOGIC (BYOR & Homebrew) ---
+document.getElementById('rom-upload').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
 
-// Function to fetch a ROM from the local 'roms' folder
-// Updating Homebrew Function
-async function loadHomebrew(filename, buttonElement) {
-    console.log(`Fetching game: ${filename}...`);
-    
-    // 1. Change UI to show it is loading
-    const originalText = buttonElement.innerText;
-    buttonElement.innerText = "BOOTING...";
-    buttonElement.style.opacity = "0.5";
+    initAudio();
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        try {
+            nes.loadROM(event.target.result);
+            if (gameLoop) cancelAnimationFrame(gameLoop);
+            gameLoop = window.requestAnimationFrame(frame);
+        } catch (error) {
+            alert("Failed to load ROM. Is it a valid .nes file?");
+        }
+    };
+    reader.readAsBinaryString(file); 
+});
+
+async function loadHomebrew(filename, cardElement) {
+    // Safely update just the text span, not the whole card (which would delete the image)
+    const textSpan = cardElement.querySelector('span');
+    const originalText = textSpan ? textSpan.innerText : "Loading...";
+    if (textSpan) textSpan.innerText = "BOOTING...";
+    cardElement.style.opacity = "0.5";
     
     initAudio(); 
-    if (audioCtx && audioCtx.state === 'suspended') {
-        audioCtx.resume();
-    }
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
     
     try {
         const response = await fetch(`./roms/${filename}`);
@@ -267,127 +153,89 @@ async function loadHomebrew(filename, buttonElement) {
         }
 
         nes.loadROM(binaryString);
-        console.log(`${filename} loaded successfully!`);
-        
         if (gameLoop) cancelAnimationFrame(gameLoop);
         gameLoop = window.requestAnimationFrame(frame);
         
     } catch (error) {
-        console.error("Error fetching ROM:", error);
-        alert(`Could not load ${filename}.`);
+        alert(`Could not load ${filename}. Are you using Live Server?`);
     } finally {
-        // 2. Revert the UI back to normal once the game starts
-        buttonElement.innerText = originalText;
-        buttonElement.style.opacity = "1";
-    }
-}
-        // Load it into the emulator and start the loop
-        nes.loadROM(binaryString);
-        console.log(`${filename} loaded successfully!`);
-        
-        if (gameLoop) cancelAnimationFrame(gameLoop);
-        gameLoop = window.requestAnimationFrame(frame);
-        
-    } catch (error) {
-        console.error("Error fetching ROM:", error);
-        alert(`Could not load ${filename}. Are you using Live Server? Is the file in the roms folder?`);
+        if (textSpan) textSpan.innerText = originalText;
+        cardElement.style.opacity = "1";
     }
 }
 
-// Attach event listeners to all our featured game buttons
-document.querySelectorAll('.game-btn').forEach(button => {
-    button.addEventListener('click', (event) => {
-        // Read the filename from the data-rom attribute in the HTML
-        const romFile = event.target.getAttribute('data-rom');
-        loadHomebrew(romFile);
+document.querySelectorAll('.game-card').forEach(card => {
+    card.addEventListener('click', () => {
+        loadHomebrew(card.getAttribute('data-rom'), card); 
     });
 });
 
-// --- GAMEPAD API INTEGRATION ---
-
-function processGamepad(pad, playerNumber) {
-    if (!pad) return;
-
-    const mapButton = (padButtonIndex, nesButton) => {
-        if (pad.buttons[padButtonIndex] && pad.buttons[padButtonIndex].pressed) {
-            nes.buttonDown(playerNumber, nesButton);
-        } else {
-            nes.buttonUp(playerNumber, nesButton);
-        }
-    };
-
-    // Face Buttons & Start/Select
-    mapButton(0, jsnes.Controller.BUTTON_A);
-    mapButton(2, jsnes.Controller.BUTTON_B);
-    mapButton(1, jsnes.Controller.BUTTON_B);
-    mapButton(8, jsnes.Controller.BUTTON_SELECT);
-    mapButton(9, jsnes.Controller.BUTTON_START);
-    
-    // D-Pad
-    mapButton(12, jsnes.Controller.BUTTON_UP);
-    mapButton(13, jsnes.Controller.BUTTON_DOWN);
-    mapButton(14, jsnes.Controller.BUTTON_LEFT);
-    mapButton(15, jsnes.Controller.BUTTON_RIGHT);
-    
-    // Analog Stick
-    const xAxis = pad.axes[0];
-    const yAxis = pad.axes[1];
-    
-    if (xAxis < -0.5) nes.buttonDown(playerNumber, jsnes.Controller.BUTTON_LEFT);
-    else if (!pad.buttons[14].pressed) nes.buttonUp(playerNumber, jsnes.Controller.BUTTON_LEFT);
-    
-    if (xAxis > 0.5) nes.buttonDown(playerNumber, jsnes.Controller.BUTTON_RIGHT);
-    else if (!pad.buttons[15].pressed) nes.buttonUp(playerNumber, jsnes.Controller.BUTTON_RIGHT);
-    
-    if (yAxis < -0.5) nes.buttonDown(playerNumber, jsnes.Controller.BUTTON_UP);
-    else if (!pad.buttons[12].pressed) nes.buttonUp(playerNumber, jsnes.Controller.BUTTON_UP);
-    
-    if (yAxis > 0.5) nes.buttonDown(playerNumber, jsnes.Controller.BUTTON_DOWN);
-    else if (!pad.buttons[13].pressed) nes.buttonUp(playerNumber, jsnes.Controller.BUTTON_DOWN);
-}
-
-function pollGamepad() {
-    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
-    
-    // Process Controller 1 (Maps to Player 1)
-    if (gamepads[0]) processGamepad(gamepads[0], 1);
-    
-    // Process Controller 2 (Maps to Player 2)
-    if (gamepads[1]) processGamepad(gamepads[1], 2);
-}
-
-// --- MOBILE TOUCH CONTROLS LOGIC ---
-
-// Map our HTML data-button attributes to the JSNES constants
-const touchMap = {
-    'up': jsnes.Controller.BUTTON_UP,
-    'down': jsnes.Controller.BUTTON_DOWN,
-    'left': jsnes.Controller.BUTTON_LEFT,
-    'right': jsnes.Controller.BUTTON_RIGHT,
-    'a': jsnes.Controller.BUTTON_A,
-    'b': jsnes.Controller.BUTTON_B,
-    'select': jsnes.Controller.BUTTON_SELECT,
-    'start': jsnes.Controller.BUTTON_START
+// --- 6. INPUT MAPPINGS (Keyboard & Mobile) ---
+const keyMap = {
+    'ArrowUp': [1, jsnes.Controller.BUTTON_UP], 'ArrowDown': [1, jsnes.Controller.BUTTON_DOWN],
+    'ArrowLeft': [1, jsnes.Controller.BUTTON_LEFT], 'ArrowRight': [1, jsnes.Controller.BUTTON_RIGHT],
+    'KeyZ': [1, jsnes.Controller.BUTTON_B], 'KeyX': [1, jsnes.Controller.BUTTON_A],
+    'Enter': [1, jsnes.Controller.BUTTON_START], 'ShiftRight': [1, jsnes.Controller.BUTTON_SELECT],
+    'KeyW': [2, jsnes.Controller.BUTTON_UP], 'KeyS': [2, jsnes.Controller.BUTTON_DOWN],
+    'KeyA': [2, jsnes.Controller.BUTTON_LEFT], 'KeyD': [2, jsnes.Controller.BUTTON_RIGHT],
+    'KeyC': [2, jsnes.Controller.BUTTON_B], 'KeyV': [2, jsnes.Controller.BUTTON_A],
+    'Digit1': [2, jsnes.Controller.BUTTON_START], 'Digit2': [2, jsnes.Controller.BUTTON_SELECT]
 };
 
-// Add listeners to all touch buttons
+document.addEventListener('keydown', (e) => {
+    if (e.target.tagName.toLowerCase() === 'input') return; 
+    const mapping = keyMap[e.code];
+    if (mapping) { nes.buttonDown(mapping[0], mapping[1]); e.preventDefault(); }
+});
+
+document.addEventListener('keyup', (e) => {
+    if (e.target.tagName.toLowerCase() === 'input') return;
+    const mapping = keyMap[e.code];
+    if (mapping) { nes.buttonUp(mapping[0], mapping[1]); e.preventDefault(); }
+});
+
+const touchMap = {
+    'up': jsnes.Controller.BUTTON_UP, 'down': jsnes.Controller.BUTTON_DOWN,
+    'left': jsnes.Controller.BUTTON_LEFT, 'right': jsnes.Controller.BUTTON_RIGHT,
+    'a': jsnes.Controller.BUTTON_A, 'b': jsnes.Controller.BUTTON_B,
+    'select': jsnes.Controller.BUTTON_SELECT, 'start': jsnes.Controller.BUTTON_START
+};
+
 document.querySelectorAll('.touch-btn').forEach(btn => {
-    
-    // When finger touches the screen
     btn.addEventListener('touchstart', (e) => {
-        e.preventDefault(); // Stop screen from scrolling
+        e.preventDefault(); 
         const btnId = btn.getAttribute('data-button');
-        if (touchMap[btnId] !== undefined) {
-            nes.buttonDown(1, touchMap[btnId]); // Trigger Player 1
-        }
+        if (touchMap[btnId] !== undefined) nes.buttonDown(1, touchMap[btnId]); 
     }, { passive: false });
 
-    // When finger lifts off the screen
     btn.addEventListener('touchend', (e) => {
         e.preventDefault();
         const btnId = btn.getAttribute('data-button');
-        if (touchMap[btnId] !== undefined) {
-            nes.buttonUp(1, touchMap[btnId]);
-        }
+        if (touchMap[btnId] !== undefined) nes.buttonUp(1, touchMap[btnId]);
     }, { passive: false });
 });
+
+// --- 7. GAMEPAD API (Optimized for Performance) ---
+let hasGamepad = false;
+
+window.addEventListener("gamepadconnected", () => hasGamepad = true);
+window.addEventListener("gamepaddisconnected", () => {
+    hasGamepad = (navigator.getGamepads ? navigator.getGamepads() : []).filter(Boolean).length > 0;
+});
+
+function processGamepad(pad, playerNumber) {
+    if (!pad) return;
+    const mapBtn = (idx, nesBtn) => pad.buttons[idx] && pad.buttons[idx].pressed ? nes.buttonDown(playerNumber, nesBtn) : nes.buttonUp(playerNumber, nesBtn);
+    
+    mapBtn(0, jsnes.Controller.BUTTON_A); mapBtn(2, jsnes.Controller.BUTTON_B); mapBtn(1, jsnes.Controller.BUTTON_B);
+    mapBtn(8, jsnes.Controller.BUTTON_SELECT); mapBtn(9, jsnes.Controller.BUTTON_START);
+    mapBtn(12, jsnes.Controller.BUTTON_UP); mapBtn(13, jsnes.Controller.BUTTON_DOWN);
+    mapBtn(14, jsnes.Controller.BUTTON_LEFT); mapBtn(15, jsnes.Controller.BUTTON_RIGHT);
+}
+
+function pollGamepad() {
+    if (!hasGamepad) return; 
+    const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+    if (gamepads[0]) processGamepad(gamepads[0], 1);
+    if (gamepads[1]) processGamepad(gamepads[1], 2);
+}
