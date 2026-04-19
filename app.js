@@ -16,27 +16,115 @@ let audioSamplesR = [];
 
 // Function to initialize the Audio engine
 function initAudio() {
-    if (audioCtx) return; // Only initialize once
+    if (audioCtx) return; 
     
     audioCtx = new AudioContext();
-    
-    // Create a processor node to handle the raw audio samples
     scriptProcessor = audioCtx.createScriptProcessor(4096, 0, 2);
     
+    // Create the Volume Node
+    gainNode = audioCtx.createGain();
+    gainNode.gain.value = 0.5; // Default to 50% volume
+
     scriptProcessor.onaudioprocess = function(e) {
         const leftOut = e.outputBuffer.getChannelData(0);
         const rightOut = e.outputBuffer.getChannelData(1);
-        
         for (let i = 0; i < leftOut.length; i++) {
-            // Pull samples from our queues, or play silence (0) if empty
             leftOut[i] = audioSamplesL.length > 0 ? audioSamplesL.shift() : 0;
             rightOut[i] = audioSamplesR.length > 0 ? audioSamplesR.shift() : 0;
         }
     };
     
-    scriptProcessor.connect(audioCtx.destination);
-    console.log("Web Audio API Initialized");
+    // Connect processor -> gain node -> speakers
+    scriptProcessor.connect(gainNode);
+    gainNode.connect(audioCtx.destination);
+    console.log("Web Audio API Initialized with Gain Control");
 }
+
+// Volume Slider Event Listener
+document.getElementById('volume-slider').addEventListener('input', (e) => {
+    if (gainNode) {
+        gainNode.gain.value = e.target.value;
+    }
+});
+
+
+// --- 2. FULLSCREEN LOGIC ---
+document.getElementById('btn-fullscreen').addEventListener('click', () => {
+    const tvBezel = document.getElementById('tv-container');
+    if (!document.fullscreenElement) {
+        tvBezel.requestFullscreen().catch(err => {
+            alert(`Error attempting to enable fullscreen: ${err.message}`);
+        });
+    } else {
+        document.exitFullscreen();
+    }
+});
+
+
+// --- 3. SAVE AND LOAD STATE LOGIC ---
+document.getElementById('btn-save').addEventListener('click', () => {
+    if (!nes) return;
+    
+    // Grab the exact memory state of the emulator
+    const stateData = nes.toJSON();
+    
+    // Create a downloadable JSON file
+    const blob = new Blob([JSON.stringify(stateData)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    
+    // Trick the browser into clicking a hidden download link
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `webnes_save_${new Date().getTime()}.json`;
+    a.click();
+    
+    URL.revokeObjectURL(url);
+    console.log("State Saved!");
+});
+
+document.getElementById('state-upload').addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(event) {
+        try {
+            const stateData = JSON.parse(event.target.result);
+            nes.fromJSON(stateData); // Inject memory state back into JSNES
+            console.log("State Loaded Successfully!");
+        } catch (err) {
+            alert("Invalid save state file.");
+        }
+    };
+    reader.readAsText(file);
+});
+
+
+// --- 4. GOOGLE SEARCH REDIRECT ---
+document.getElementById('search-btn').addEventListener('click', () => {
+    const query = document.getElementById('rom-search-input').value;
+    if (query.trim() !== "") {
+        // Construct the Google search URL and open in a new tab
+        const searchUrl = `https://www.google.com/search?q=${encodeURIComponent(query + ' nes rom free')}`;
+        window.open(searchUrl, '_blank');
+    }
+});
+
+// Allow hitting "Enter" in the search box
+document.getElementById('rom-search-input').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') {
+        document.getElementById('search-btn').click();
+    }
+});
+
+// --- 5. UPDATED GAME CARD CLICK LISTENER ---
+// Because we changed the HTML structure, the click listener needs a slight tweak
+document.querySelectorAll('.game-card').forEach(card => {
+    card.addEventListener('click', () => {
+        const romFile = card.getAttribute('data-rom');
+        loadHomebrew(romFile);
+    });
+});
 
 
 // --- UPDATED JSNES INITIALIZATION ---
@@ -80,14 +168,21 @@ const keyMap = {
 };
 
 document.addEventListener('keydown', (e) => {
+    // --- NEW LINE: THE FIX ---
+    // If the user is typing inside an input field, do not trigger the emulator
+    if (e.target.tagName.toLowerCase() === 'input') return; 
+
     const mapping = keyMap[e.code];
     if (mapping) {
-        nes.buttonDown(mapping[0], mapping[1]); // mapping[0] is player 1 or 2
+        nes.buttonDown(mapping[0], mapping[1]);
         e.preventDefault(); 
     }
 });
 
 document.addEventListener('keyup', (e) => {
+    // --- NEW LINE: THE FIX ---
+    if (e.target.tagName.toLowerCase() === 'input') return;
+
     const mapping = keyMap[e.code];
     if (mapping) {
         nes.buttonUp(mapping[0], mapping[1]);

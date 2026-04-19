@@ -1,75 +1,67 @@
-body {
-    margin: 0;
-    background-color: #0f172a; /* Slate dark mode */
-    color: #f8fafc;
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+:root {
+    --neon-blue: #00f3ff;
+    --arcade-dark: #0a0a12;
+    --panel-bg: #11111a;
+    --border-color: #2a2a40;
 }
 
-#app-container {
-    display: flex;
-    height: 100vh;
-}
+body { margin: 0; background-color: var(--arcade-dark); color: #e2e8f0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+h1, h3 { font-family: 'Press Start 2P', cursive; color: var(--neon-blue); text-transform: uppercase; margin: 0 0 10px 0; }
 
-/* Sidebar Styling */
-#library-sidebar {
-    width: 320px;
-    background-color: #1e293b;
-    padding: 30px 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 30px;
-    border-right: 1px solid #334155;
-    overflow-y: auto;
-}
+#app-container { display: flex; height: 100vh; overflow: hidden; }
 
-h1, h3 { margin: 0; }
-.logo-area p { color: #94a3b8; font-size: 0.9rem; margin-top: 5px; }
+/* Sidebar UI */
+#library-sidebar { width: 380px; background-color: var(--panel-bg); padding: 25px; display: flex; flex-direction: column; gap: 20px; border-right: 2px solid var(--border-color); overflow-y: auto; }
+#library-sidebar::-webkit-scrollbar { width: 6px; }
+#library-sidebar::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
 
-/* Buttons */
-.game-btn, .upload-btn {
-    display: block;
-    width: 100%;
-    padding: 12px;
-    margin-bottom: 10px;
-    background-color: #3b82f6;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    cursor: pointer;
-    font-weight: bold;
-    text-align: center;
-    transition: background 0.2s;
-}
-.game-btn:hover, .upload-btn:hover { background-color: #2563eb; }
+/* Header & Branding */
+.header-area { border-bottom: 2px solid var(--border-color); padding-bottom: 15px; }
+.header-area h1 { font-size: 1.8rem; text-shadow: 0 0 10px rgba(0, 243, 255, 0.5); }
+.tagline { color: #ccc; font-size: 0.85rem; line-height: 1.4; margin: 10px 0; }
+.author { color: var(--neon-blue); font-size: 0.7rem; font-family: 'Press Start 2P', cursive; margin: 0; }
 
-/* Upload Section */
-#rom-upload { display: none; }
-.upload-section {
-    border-top: 1px solid #334155;
-    padding-top: 20px;
-}
-.privacy-note { font-size: 0.8rem; color: #10b981; margin-bottom: 15px; }
+/* Sidebar Sections */
+.sidebar-section { background: #1a1a24; padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); }
+.sidebar-section h3 { font-size: 0.7rem; color: #fff; }
+.helper-text { font-size: 0.8rem; color: #94a3b8; margin: 0 0 12px 0; }
 
-/* Emulator Screen */
-#emulator-main {
-    flex: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    background-image: radial-gradient(circle, #1e293b 0%, #0f172a 100%);
-}
+/* Primary Button */
+.highlight-section { border-color: var(--neon-blue); background: rgba(0, 243, 255, 0.05); }
+.primary-btn { display: block; text-align: center; padding: 12px; background-color: var(--neon-blue); color: #000; border-radius: 4px; cursor: pointer; font-weight: bold; transition: 0.2s; }
+.primary-btn:hover { background-color: #fff; }
 
-.tv-bezel {
-    padding: 20px;
-    background-color: #000;
-    border-radius: 12px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-    border: 2px solid #334155;
-}
+/* Search Box */
+.search-box { display: flex; gap: 5px; }
+.search-box input { flex: 1; padding: 10px; background: #0a0a12; border: 1px solid #444; color: #fff; border-radius: 4px; }
+#search-btn { background: #444; color: white; border: none; padding: 10px 15px; border-radius: 4px; cursor: pointer; font-weight: bold; }
+#search-btn:hover { background: #666; }
 
-#nes-canvas {
-    display: block;
-    width: 512px;
-    height: 480px;
-    image-rendering: pixelated;
-}
+/* Game Grid (Thumbnails) */
+.game-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.game-card { background: #0a0a12; border: 1px solid #333; border-radius: 6px; overflow: hidden; cursor: pointer; padding: 0; display: flex; flex-direction: column; transition: 0.2s; }
+.game-card:hover { border-color: var(--neon-blue); transform: translateY(-2px); }
+.game-card img { width: 100%; height: 80px; object-fit: cover; display: block; border-bottom: 1px solid #333; }
+.game-card span { padding: 8px; font-size: 0.75rem; color: #fff; font-weight: bold; text-align: center; }
+
+/* Controls Panel */
+.controls-split { display: flex; justify-content: space-between; font-size: 0.8rem; color: #cbd5e1; }
+.controls-split h4 { color: var(--neon-blue); margin: 0 0 5px 0; font-size: 0.8rem; text-transform: uppercase; }
+.controls-split p { margin: 3px 0; }
+.gamepad-note { font-size: 0.7rem; color: #10b981; margin-top: 10px; text-align: center; }
+
+/* The TV Area (Keep existing TV styles) */
+#emulator-main { flex: 1; display: flex; justify-content: center; align-items: center; background: radial-gradient(circle at center, #1a1a2e 0%, #050505 100%); }
+.tv-wrapper { display: flex; flex-direction: column; gap: 15px; }
+.tv-bezel { position: relative; padding: 30px; background-color: #0d0d0d; border-radius: 16px; box-shadow: 0 0 50px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(255,255,255,0.05); border: 2px solid #222; }
+.scanlines { position: absolute; top: 30px; left: 30px; right: 30px; bottom: 30px; background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06)); background-size: 100% 4px, 6px 100%; pointer-events: none; }
+#nes-canvas { display: block; width: 512px; height: 480px; image-rendering: pixelated; background: #000; }
+.tv-toolbar { display: flex; justify-content: space-between; background: #0d0d0d; padding: 10px 20px; border-radius: 8px; border: 1px solid #222; }
+.toolbar-group { display: flex; align-items: center; gap: 15px; }
+.tool-btn { background: #222; color: #fff; border: 1px solid #444; padding: 8px 12px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+.tool-btn:hover { background: #444; }
+.action-btn { background: #10b981; color: #000; font-weight: bold; border: none; }
+.action-btn:hover { background: #0ea5e9; }
+.load-btn { font-size: 0.8rem; padding: 8px 12px; display: inline-block; cursor: pointer; }
+.volume-control { display: flex; align-items: center; gap: 8px; }
+input[type=range] { cursor: pointer; width: 100px; }

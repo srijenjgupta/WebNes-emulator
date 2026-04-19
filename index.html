@@ -3,48 +3,118 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WebNES MVP</title>
+    <title>WebNES | Srijen Gupta</title>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <div id="app-container">
         
         <aside id="library-sidebar">
-            <div class="logo-area">
+            <div class="header-area">
                 <h1>WebNES</h1>
-                <p>Instant Retro Emulation</p>
+                <p class="tagline">Bringing you back to your old memories of Retro-Games.</p>
+                <p class="author">Built by Srijen Gupta</p>
             </div>
 
-            <div class="featured-games">
-                <h3>Featured Homebrew</h3>
-                <button class="game-btn" data-rom="Alter_Ego.nes">Play Alter Ego</button>
-                <button class="game-btn" data-rom="BladeBuster.nes">Play BladeBuster</button>
-                <button class="game-btn" data-rom="2048.nes">Play 2048</button>
-                <button class="game-btn" data-rom="Lawn_Mower.nes">Play Lawn Mower</button>
-                <button class="game-btn" data-rom="owlia.nes">Play The Legends of Owlia</button>
-                <button class="game-btn" data-rom="streemerz-v02.nes">Play STREEMERZ</button>
-                <button class="game-btn" data-rom="Super Bat Puncher Demo.nes">Play Super Bat Puncher</button>
-                <button class="game-btn" data-rom="City Connection (USA).nes">Play City Connection</button>
+            <div class="sidebar-section highlight-section">
+                <h3>1. Play Your Own Game</h3>
+                <p class="helper-text">Have a .nes file? Load it directly here. Runs 100% locally.</p>
+                <label for="rom-upload" class="primary-btn">📁 UPLOAD .NES FILE</label>
+                <input type="file" id="rom-upload" accept=".nes" style="display: none;" />
             </div>
 
-            <div class="upload-section">
-                <h3>Bring Your Own ROM</h3>
-                <p class="privacy-note">Processed 100% locally. Zero server uploads.</p>
-                <label for="rom-upload" class="upload-btn">Upload .NES File</label>
-                <input type="file" id="rom-upload" accept=".nes" />
+            <div class="sidebar-section">
+                <h3>2. Don't have a ROM?</h3>
+                <p class="helper-text">Search the web for free classic .nes files.</p>
+                <div class="search-box">
+                    <input type="text" id="rom-search-input" placeholder="e.g. Contra">
+                    <button id="search-btn">Search</button>
+                </div>
             </div>
 
-            <div class="controls-info">
-                <h3>Controls</h3>
-                <p><b>D-Pad:</b> Arrow Keys</p>
-                <p><b>A / B:</b> Z / X</p>
-                <p><b>Start / Select:</b> Enter / Shift</p>
+            <div class="sidebar-section">
+                <h3>3. Or Play Instantly</h3>
+                <div class="game-grid">
+                    <button class="game-card" data-rom="bladebuster.nes">
+                        <img src="https://placehold.co/120x120/1e293b/00f3ff?text=Blade+Buster" alt="Blade Buster">
+                        <span>Blade Buster</span>
+                    </button>
+                    <button class="game-card" data-rom="alterego.nes">
+                        <img src="https://placehold.co/120x120/1e293b/00f3ff?text=Alter+Ego" alt="Alter Ego">
+                        <span>Alter Ego</span>
+                    </button>
+                    <button class="game-card" data-rom="lawnmower.nes">
+                        <img src="https://placehold.co/120x120/1e293b/00f3ff?text=Lawn+Mower" alt="Lawn Mower">
+                        <span>Lawn Mower</span>
+                    </button>
+                    <button class="game-card" data-rom="superbatpuncher.nes">
+                        <img src="https://placehold.co/120x120/1e293b/00f3ff?text=Bat+Puncher" alt="Super Bat Puncher">
+                        <span>Bat Puncher</span>
+                    </button>
+                    <button class="game-card" data-rom="cityconnection.nes">
+                        <img src="https://placehold.co/120x120/1e293b/00f3ff?text=City+Conn" alt="City Connection">
+                        <span>City Connect</span>
+                    </button>
+                    <button class="game-card" data-rom="2048.nes">
+                        <img src="https://placehold.co/120x120/1e293b/00f3ff?text=2048" alt="2048">
+                        <span>2048 (NES)</span>
+                    </button>
+                    <button class="game-card" data-rom="streemerz.nes">
+                        <img src="https://placehold.co/120x120/1e293b/00f3ff?text=STREEMERZ" alt="STREEMERZ">
+                        <span>STREEMERZ</span>
+                    </button>
+                    <button class="game-card" data-rom="owlia.nes">
+                        <img src="https://placehold.co/120x120/1e293b/00f3ff?text=Owlia" alt="Owlia">
+                        <span>Owlia</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="sidebar-section controls-panel">
+                <h3>🎮 Controls</h3>
+                <div class="controls-split">
+                    <div>
+                        <h4>Player 1</h4>
+                        <p><b>Move:</b> Arrows</p>
+                        <p><b>A / B:</b> X / Z</p>
+                        <p><b>Start:</b> Enter</p>
+                        <p><b>Select:</b> R-Shift</p>
+                    </div>
+                    <div>
+                        <h4>Player 2</h4>
+                        <p><b>Move:</b> W A S D</p>
+                        <p><b>A / B:</b> V / C</p>
+                        <p><b>Start:</b> 1</p>
+                        <p><b>Select:</b> 2</p>
+                    </div>
+                </div>
+                <p class="gamepad-note"><i>* USB/Bluetooth Gamepads also supported automatically.</i></p>
             </div>
         </aside>
 
         <main id="emulator-main">
-            <div class="tv-bezel">
-                <canvas id="nes-canvas" width="256" height="240"></canvas>
+            <div class="tv-wrapper">
+                <div class="tv-bezel" id="tv-container">
+                    <div class="scanlines"></div>
+                    <canvas id="nes-canvas" width="256" height="240"></canvas>
+                </div>
+                
+                <div class="tv-toolbar">
+                    <div class="toolbar-group">
+                        <button id="btn-fullscreen" class="tool-btn">🔲 Fullscreen</button>
+                        <div class="volume-control">
+                            <span id="mute-icon">🔊</span>
+                            <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5">
+                        </div>
+                    </div>
+                    
+                    <div class="toolbar-group">
+                        <button id="btn-save" class="tool-btn action-btn">💾 Save State</button>
+                        <label for="state-upload" class="tool-btn action-btn load-btn">📂 Load State</label>
+                        <input type="file" id="state-upload" accept=".json" style="display: none;" />
+                    </div>
+                </div>
             </div>
         </main>
     </div>
