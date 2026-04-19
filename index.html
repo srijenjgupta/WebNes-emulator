@@ -99,9 +99,21 @@
                     <div class="scanlines"></div>
                     <canvas id="nes-canvas" width="256" height="240"></canvas>
                 </div>
-                
-                <div class="tv-toolbar">
-                    </div>
+<div class="tv-toolbar">
+    <div class="toolbar-group">
+        <button id="btn-fullscreen" class="tool-btn">🔲 Fullscreen</button>
+        <div class="volume-control">
+            <span id="mute-icon">🔊</span>
+            <input type="range" id="volume-slider" min="0" max="1" step="0.1" value="0.5">
+        </div>
+    </div>
+    
+    <div class="toolbar-group">
+        <button id="btn-save" class="tool-btn action-btn">💾 Save State</button>
+        <label for="state-upload" class="tool-btn action-btn load-btn">📂 Load State</label>
+        <input type="file" id="state-upload" accept=".json" style="display: none;" />
+    </div>
+</div>
             </div>
 
             <div id="mobile-controls" class="mobile-controls">
