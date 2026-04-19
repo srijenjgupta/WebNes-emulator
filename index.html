@@ -8,12 +8,17 @@
 </head>
 <body>
     <div id="emulator-container">
-        <h1>WebNES Environment Initialized</h1>
-        <p>Awaiting Step 2: Canvas and Keybindings...</p>
+        <div class="controls" style="margin-bottom: 20px; text-align: center;">
+            <label for="rom-upload" style="cursor: pointer; background: #333; padding: 10px 20px; border-radius: 5px; border: 1px solid #555;">
+                Load .NES File
+            </label>
+            <input type="file" id="rom-upload" accept=".nes" style="display: none;" />
+        </div>
+
+        <canvas id="nes-canvas" width="256" height="240"></canvas>
     </div>
 
     <script src="https://unpkg.com/jsnes/dist/jsnes.min.js"></script>
-    
     <script src="app.js"></script>
 </body>
 </html>
