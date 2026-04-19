@@ -355,3 +355,39 @@ function pollGamepad() {
     // Process Controller 2 (Maps to Player 2)
     if (gamepads[1]) processGamepad(gamepads[1], 2);
 }
+
+// --- MOBILE TOUCH CONTROLS LOGIC ---
+
+// Map our HTML data-button attributes to the JSNES constants
+const touchMap = {
+    'up': jsnes.Controller.BUTTON_UP,
+    'down': jsnes.Controller.BUTTON_DOWN,
+    'left': jsnes.Controller.BUTTON_LEFT,
+    'right': jsnes.Controller.BUTTON_RIGHT,
+    'a': jsnes.Controller.BUTTON_A,
+    'b': jsnes.Controller.BUTTON_B,
+    'select': jsnes.Controller.BUTTON_SELECT,
+    'start': jsnes.Controller.BUTTON_START
+};
+
+// Add listeners to all touch buttons
+document.querySelectorAll('.touch-btn').forEach(btn => {
+    
+    // When finger touches the screen
+    btn.addEventListener('touchstart', (e) => {
+        e.preventDefault(); // Stop screen from scrolling
+        const btnId = btn.getAttribute('data-button');
+        if (touchMap[btnId] !== undefined) {
+            nes.buttonDown(1, touchMap[btnId]); // Trigger Player 1
+        }
+    }, { passive: false });
+
+    // When finger lifts off the screen
+    btn.addEventListener('touchend', (e) => {
+        e.preventDefault();
+        const btnId = btn.getAttribute('data-button');
+        if (touchMap[btnId] !== undefined) {
+            nes.buttonUp(1, touchMap[btnId]);
+        }
+    }, { passive: false });
+});
