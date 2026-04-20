@@ -239,3 +239,12 @@ function pollGamepad() {
     if (gamepads[0]) processGamepad(gamepads[0], 1);
     if (gamepads[1]) processGamepad(gamepads[1], 2);
 }
+
+// --- MOBILE LAYOUT TOGGLE ---
+const btnSwapHands = document.getElementById('btn-swap-hands');
+if (btnSwapHands) {
+    btnSwapHands.addEventListener('click', () => {
+        document.getElementById('mobile-controls').classList.toggle('lefty-mode');
+    });
+}
+
