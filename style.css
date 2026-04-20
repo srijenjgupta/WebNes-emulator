@@ -115,6 +115,45 @@ input[type=range] { cursor: pointer; width: 100px; }
     /* Hide the volume and fullscreen buttons on mobile (they clutter UI and phones handle this natively) */
     .volume-control, #btn-fullscreen { display: none; }
 
+    /* Wrapper to hold the swap button and controls */
+    .mobile-wrapper {
+        width: 95%;
+        max-width: 500px;
+        margin: 10px auto;
+        display: flex;
+        flex-direction: column;
+    }
+
+    /* The Swap Button styling */
+    .swap-btn {
+        align-self: flex-end;
+        background: transparent;
+        color: var(--neon-blue);
+        border: 1px solid var(--border-color);
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-family: 'Press Start 2P', cursive;
+        font-size: 0.5rem;
+        cursor: pointer;
+        margin-bottom: 5px;
+        transition: 0.2s;
+    }
+    .swap-btn:active { background: var(--neon-blue); color: #000; }
+
+    /* Fix the margins on the controls since the wrapper handles it now */
+    .mobile-controls {
+        margin: 0; 
+        width: 100%;
+        box-sizing: border-box;
+        /* ... keep your other existing .mobile-controls styles ... */
+    }
+
+    /* THE MAGIC FIX: Reverses the D-Pad and Action Pad instantly */
+    .mobile-controls.lefty-mode {
+        flex-direction: row-reverse;
+    }
+
+
     /* Show and style the Mobile Touch Controls */
     .mobile-controls {
         display: flex;
